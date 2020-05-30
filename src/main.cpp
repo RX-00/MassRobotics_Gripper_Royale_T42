@@ -34,6 +34,9 @@ void servo_test(RPM::SerialInterface *servosInterface, unsigned char channelNumb
   exit(1);
 }
 
+void servo_control(RPM::SerialInterface *serialInterface, unsigned char channelNumber){
+}
+
 // function to test device over serial w/ sinusoidal signals
 void sinusoid_signal(RPM::SerialInterface *serialInterface, unsigned char channelNumber){
   // Generate a sinusoid signal to send to the PololuInterface
@@ -78,7 +81,7 @@ int main(int argc, char** argv){
   // Serial servo interface
   unsigned char deviceNumber = 12;
   unsigned char channelNumber = 11;
-  std::string portName = "/dev/ttyACM1";
+  std::string portName = "/dev/ttyACM0";
   RPM::SerialInterface *servosInterface = serialInterfaceInit(deviceNumber, channelNumber, portName);
   servosInterface -> SerialInterface::mMinChannelValue = SRVO_MIN;
   servosInterface -> SerialInterface::mMaxChannelValue = SRVO_MAX;
