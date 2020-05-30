@@ -34,7 +34,66 @@ void servo_test(RPM::SerialInterface *servosInterface, unsigned char channelNumb
   exit(1);
 }
 
-void servo_control(RPM::SerialInterface *serialInterface, unsigned char channelNumber){
+// open or close the gripper
+void close_and_open(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
+  bool cont = true;
+  while(cont){
+    
+  }
+}
+
+// move one individual servo
+void move_servo(RPM::SerialInterface *servosInterface, unsigned char channelNumber, int servo_num){
+  bool cont = true;
+  while(cont){
+    
+  }
+}
+
+// moves both servos at the same time
+void move_servos(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
+  bool cont = true;
+  while(cont){
+    
+  }
+}
+
+void servo_control(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
+  bool cont = true;
+  char option;
+  std::cout << "Starting demo for MassRobotics Royale T42 Gripper..." << std::endl;
+
+  while (cont){
+    std::cout << "\n\nPlease choose an option" << std::endl;
+    std::cout << "A: close & open gripper\n"
+              << "B: move 0 servo\n"
+              << "C: move 1 servo\n"
+              << "D: move both servos\n"
+              << "E: exit demo\n"
+              << std::endl;
+    std::cin >> option;
+    switch(option){
+    case 'A':
+      close_and_open(servosInterface, channelNumber);
+      break;
+    case 'B':
+      move_servo(servosInterface, channelNumber, 0);
+      break;
+    case 'C':
+      move_servo(servosInterface, channelNumber, 1);
+      break;
+    case 'D':
+      move_servos(servosInterface, channelNumber);
+      break;
+    case 'E':
+      cont = false;
+      break;
+    default:
+      std::cout << "Invalid input" << std::endl;
+    }
+  }
+
+  std::cout << "Terminating demo..." << std::endl;
 }
 
 // function to test device over serial w/ sinusoidal signals
@@ -85,6 +144,8 @@ int main(int argc, char** argv){
   RPM::SerialInterface *servosInterface = serialInterfaceInit(deviceNumber, channelNumber, portName);
   servosInterface -> SerialInterface::mMinChannelValue = SRVO_MIN;
   servosInterface -> SerialInterface::mMaxChannelValue = SRVO_MAX;
+
+  servo_control(servosInterface, channelNumber);
 
   delete servosInterface;
   servosInterface = NULL;
