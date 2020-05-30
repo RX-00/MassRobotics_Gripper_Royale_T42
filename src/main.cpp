@@ -14,10 +14,33 @@
 #include "Utils.h"              // servo utility class for sleep & time methods
 
 
+
+// ====================================================================================
+// ====================================================================================
+
+
+// TODO: hook up the maestro controller of the gripper to a computer and test the
+//       channel MIN and MAX of the MG99 Servos, might be different from the values
+//       here that were meant for the 35 kg*m servos. Double check the default starting
+//       value of each demo here and if the servos are negative mirrored to each other.
+
+
+// ====================================================================================
+// ====================================================================================
+
+
+
 //NOTE: modified the RPM library to allow for greater servo range
 #define SRVO_MAX   10000
 #define SRVO_MIN   2000
+#define L_SERVO_OPEN   2500
+#define L_SERVO_CLOSE  2500
+#define R_SERVO_OPEN   2500
+#define R_SERVO_CLOSE  2500
+#define L_SERVO    0
+#define R_SERVO    1
 
+// automatic test for one individual servo
 void servo_test(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
   std::cout << "Testing servo number: " << 11 << std::endl;
   for (int i = 0; i < 5; i++){
@@ -35,30 +58,102 @@ void servo_test(RPM::SerialInterface *servosInterface, unsigned char channelNumb
 }
 
 // open or close the gripper
-void close_and_open(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
+void close_and_open(RPM::SerialInterface *servosInterface){
   bool cont = true;
+  int option;
   while(cont){
-    
+    std::cout << "Close & Open gripper \n"
+              << "0: open gripper \n"
+              << "1: close gripper \n"
+              << "any other input exits this demo option"
+              << std::endl;
+    std::cin >> option;
+    switch(option){
+    case 0:
+      std::cout << "opening gripper..." << std::endl;
+      servosInterface -> setTargetCP(L_SERVO, L_SERVO_OPEN);
+      servosInterface -> setTargetCP(R_SERVO, R_SERVO_OPEN);
+      Utils::sleep(500);
+      break;
+    case 1:
+      std::cout << "closing gripper..." << std::endl;
+      servosInterface -> setTargetCP(L_SERVO, L_SERVO_CLOSE);
+      servosInterface -> setTargetCP(R_SERVO, R_SERVO_CLOSE);
+      Utils::sleep(500);
+      break;
+    default:
+      cont = false;
+      break;
+    }
   }
 }
 
 // move one individual servo
-void move_servo(RPM::SerialInterface *servosInterface, unsigned char channelNumber, int servo_num){
+void move_servo(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
   bool cont = true;
+  int option;
+  int val = SRVO_MIN;
   while(cont){
-    
+    std::cout << "Close & Open gripper \n"
+              << "0: decrease servo pos value \n"
+              << "1: increase servo pos value \n"
+              << "any other input exits this demo option"
+              << std::endl;
+    std::cin >> option;
+    switch(option){
+    case 0:
+      val -= 5;
+      servosInterface -> setTargetCP(channelNumber, val);
+      Utils::sleep(500);
+      break;
+    case 1:
+      val += 5;
+      servosInterface -> setTargetCP(channelNumber, val);
+      Utils::sleep(500);
+      break;
+    default:
+      cont = false;
+      break;
+    }
   }
 }
 
 // moves both servos at the same time
-void move_servos(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
+void move_servos(RPM::SerialInterface *servosInterface){
   bool cont = true;
+  int option;
+  int val0 = SRVO_MIN;
+  int val1 = SRVO_MAX;
   while(cont){
-    
+    std::cout << "Close & Open gripper \n"
+              << "0: decrease servos pos value \n"
+              << "1: increase servos pos value \n"
+              << "any other input exits this demo option"
+              << std::endl;
+    std::cin >> option;
+    switch(option){
+    case 0:
+      val0 -= 5;
+      val1 += 5;
+      servosInterface -> setTargetCP(L_SERVO, val0);
+      servosInterface -> setTargetCP(R_SERVO, val1);
+      Utils::sleep(500);
+      break;
+    case 1:
+      val0 += 5;
+      val1 -= 5;
+      servosInterface -> setTargetCP(L_SERVO, val0);
+      servosInterface -> setTargetCP(R_SERVO, val1);
+      Utils::sleep(500);
+      break;
+    default:
+      cont = false;
+      break;
+    }
   }
 }
 
-void servo_control(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
+void servo_control(RPM::SerialInterface *servosInterface){
   bool cont = true;
   char option;
   std::cout << "Starting demo for MassRobotics Royale T42 Gripper..." << std::endl;
@@ -74,22 +169,23 @@ void servo_control(RPM::SerialInterface *servosInterface, unsigned char channelN
     std::cin >> option;
     switch(option){
     case 'A':
-      close_and_open(servosInterface, channelNumber);
+      close_and_open(servosInterface);
       break;
     case 'B':
-      move_servo(servosInterface, channelNumber, 0);
+      move_servo(servosInterface, L_SERVO);
       break;
     case 'C':
-      move_servo(servosInterface, channelNumber, 1);
+      move_servo(servosInterface, R_SERVO);
       break;
     case 'D':
-      move_servos(servosInterface, channelNumber);
+      move_servos(servosInterface);
       break;
     case 'E':
       cont = false;
       break;
     default:
       std::cout << "Invalid input" << std::endl;
+      break;
     }
   }
 
@@ -138,14 +234,14 @@ RPM::SerialInterface * serialInterfaceInit(unsigned char deviceNumber, unsigned 
 
 int main(int argc, char** argv){
   // Serial servo interface
-  unsigned char deviceNumber = 12;
-  unsigned char channelNumber = 11;
+  unsigned char deviceNumber = 12; // NOTE: might need to change to 6
+  unsigned char channelNumber = 0;
   std::string portName = "/dev/ttyACM0";
   RPM::SerialInterface *servosInterface = serialInterfaceInit(deviceNumber, channelNumber, portName);
   servosInterface -> SerialInterface::mMinChannelValue = SRVO_MIN;
   servosInterface -> SerialInterface::mMaxChannelValue = SRVO_MAX;
 
-  servo_control(servosInterface, channelNumber);
+  servo_control(servosInterface);
 
   delete servosInterface;
   servosInterface = NULL;
