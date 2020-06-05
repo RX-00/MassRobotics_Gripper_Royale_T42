@@ -58,7 +58,7 @@ void servo_test(RPM::SerialInterface *servosInterface, unsigned char channelNumb
 }
 
 // open or close the gripper
-void close_and_open(RPM::SerialInterface *servosInterface){
+int close_and_open(RPM::SerialInterface *servosInterface){
   bool cont = true;
   int option;
   while(cont){
@@ -83,13 +83,15 @@ void close_and_open(RPM::SerialInterface *servosInterface){
       break;
     default:
       cont = false;
+      return 0;
       break;
     }
   }
+  return 0;
 }
 
 // move one individual servo
-void move_servo(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
+int move_servo(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
   bool cont = true;
   int option;
   int val = SRVO_MIN;
@@ -113,13 +115,15 @@ void move_servo(RPM::SerialInterface *servosInterface, unsigned char channelNumb
       break;
     default:
       cont = false;
+      return 0;
       break;
     }
   }
+  return 0;
 }
 
 // moves both servos at the same time
-void move_servos(RPM::SerialInterface *servosInterface){
+int move_servos(RPM::SerialInterface *servosInterface){
   bool cont = true;
   int option;
   int val0 = SRVO_MIN;
@@ -147,10 +151,12 @@ void move_servos(RPM::SerialInterface *servosInterface){
       Utils::sleep(500);
       break;
     default:
+      return 0;
       cont = false;
       break;
     }
   }
+  return 0;
 }
 
 void servo_control(RPM::SerialInterface *servosInterface){
