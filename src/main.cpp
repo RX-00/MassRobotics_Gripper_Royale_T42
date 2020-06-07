@@ -31,51 +31,54 @@
 
 
 //NOTE: modified the RPM library to allow for greater servo range
-#define SRVO_MAX   10000
-#define SRVO_MIN   2000
-#define L_SERVO_OPEN   2500
-#define L_SERVO_CLOSE  2500
-#define R_SERVO_OPEN   2500
-#define R_SERVO_CLOSE  2500
+#define SRVO_MAX   9000
+#define SRVO_MIN   5000
+#define SRVO_NEUTRAL   7000
+#define L_SERVO_OPEN   5000
+#define L_SERVO_CLOSE  8500
+#define R_SERVO_OPEN   5000
+#define R_SERVO_CLOSE  8500
 #define L_SERVO    0
 #define R_SERVO    1
 
 // automatic test for one individual servo
 void servo_test(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
   std::cout << "Testing servo number: " << 11 << std::endl;
-  for (int i = 0; i < 5; i++){
+  for (int i = 0; i < 2; i++){
     std::cout << "min position" << std::endl;
     servosInterface -> setTargetCP(channelNumber, SRVO_MIN);
     Utils::sleep(1000);
     std::cout << "middle position" << std::endl;
-    servosInterface -> setTargetCP(channelNumber, 6000);
+    servosInterface -> setTargetCP(channelNumber, SRVO_NEUTRAL);
     Utils::sleep(1000);
     std::cout << "max position" << std::endl;
     servosInterface -> setTargetCP(channelNumber, SRVO_MAX);
     Utils::sleep(1000);
   }
-  exit(1);
+  std::cout << "min position" << std::endl;
+  servosInterface -> setTargetCP(channelNumber, SRVO_MIN);
 }
 
 // open or close the gripper
 int close_and_open(RPM::SerialInterface *servosInterface){
   bool cont = true;
-  int option;
+  char option;
   while(cont){
     std::cout << "Close & Open gripper \n"
-              << "0: open gripper \n"
-              << "1: close gripper \n"
+              << "A: open gripper \n"
+              << "B: close gripper \n"
               << "any other input exits this demo option"
               << std::endl;
     std::cin >> option;
+    if (!isalpha(option)) exit(0);
     switch(option){
-    case 0:
+    case 'A':
       std::cout << "opening gripper..." << std::endl;
       servosInterface -> setTargetCP(L_SERVO, L_SERVO_OPEN);
       servosInterface -> setTargetCP(R_SERVO, R_SERVO_OPEN);
       Utils::sleep(500);
       break;
-    case 1:
+    case 'B':
       std::cout << "closing gripper..." << std::endl;
       servosInterface -> setTargetCP(L_SERVO, L_SERVO_CLOSE);
       servosInterface -> setTargetCP(R_SERVO, R_SERVO_CLOSE);
@@ -93,22 +96,23 @@ int close_and_open(RPM::SerialInterface *servosInterface){
 // move one individual servo
 int move_servo(RPM::SerialInterface *servosInterface, unsigned char channelNumber){
   bool cont = true;
-  int option;
+  char option;
   int val = SRVO_MIN;
   while(cont){
     std::cout << "Close & Open gripper \n"
-              << "0: decrease servo pos value \n"
-              << "1: increase servo pos value \n"
+              << "A: decrease servo pos value \n"
+              << "B: increase servo pos value \n"
               << "any other input exits this demo option"
               << std::endl;
     std::cin >> option;
+    if (!isalpha(option)) exit(0);
     switch(option){
-    case 0:
+    case 'A':
       val -= 5;
       servosInterface -> setTargetCP(channelNumber, val);
       Utils::sleep(500);
       break;
-    case 1:
+    case 'B':
       val += 5;
       servosInterface -> setTargetCP(channelNumber, val);
       Utils::sleep(500);
@@ -125,16 +129,17 @@ int move_servo(RPM::SerialInterface *servosInterface, unsigned char channelNumbe
 // moves both servos at the same time
 int move_servos(RPM::SerialInterface *servosInterface){
   bool cont = true;
-  int option;
+  char option;
   int val0 = SRVO_MIN;
   int val1 = SRVO_MAX;
   while(cont){
     std::cout << "Close & Open gripper \n"
-              << "0: decrease servos pos value \n"
-              << "1: increase servos pos value \n"
+              << "A: decrease servos pos value \n"
+              << "B: increase servos pos value \n"
               << "any other input exits this demo option"
               << std::endl;
     std::cin >> option;
+    if (!isalpha(option)) exit(0);
     switch(option){
     case 0:
       val0 -= 5;
@@ -167,12 +172,13 @@ void servo_control(RPM::SerialInterface *servosInterface){
   while (cont){
     std::cout << "\n\nPlease choose an option" << std::endl;
     std::cout << "A: close & open gripper\n"
-              << "B: move 0 servo\n"
-              << "C: move 1 servo\n"
+              << "B: move servo num 0\n"
+              << "C: move servo num 1\n"
               << "D: move both servos\n"
               << "E: exit demo\n"
               << std::endl;
     std::cin >> option;
+    if (!isalpha(option)) exit(0);
     switch(option){
     case 'A':
       close_and_open(servosInterface);
@@ -241,13 +247,29 @@ RPM::SerialInterface * serialInterfaceInit(unsigned char deviceNumber, unsigned 
 int main(int argc, char** argv){
   // Serial servo interface
   unsigned char deviceNumber = 12; // NOTE: might need to change to 6
-  unsigned char channelNumber = 0;
+  unsigned char channelNumber = 1;
   std::string portName = "/dev/ttyACM0";
   RPM::SerialInterface *servosInterface = serialInterfaceInit(deviceNumber, channelNumber, portName);
   servosInterface -> SerialInterface::mMinChannelValue = SRVO_MIN;
   servosInterface -> SerialInterface::mMaxChannelValue = SRVO_MAX;
 
-  servo_control(servosInterface);
+  sinusoid_signal(servosInterface, 0);
+  //servo_test(servosInterface, 0);
+  sinusoid_signal(servosInterface, 1);
+  //servo_test(servosInterface, 1);
+
+  servosInterface -> setTargetCP(L_SERVO, L_SERVO_OPEN);
+  servosInterface -> setTargetCP(R_SERVO, R_SERVO_OPEN);
+  Utils::sleep(3000);
+  std::cout << "Closing gripper..." << std::endl;
+  servosInterface -> setTargetCP(L_SERVO, L_SERVO_CLOSE);
+  servosInterface -> setTargetCP(R_SERVO, R_SERVO_CLOSE);
+  Utils::sleep(6000);
+  servosInterface -> setTargetCP(L_SERVO, L_SERVO_OPEN);
+  servosInterface -> setTargetCP(R_SERVO, R_SERVO_OPEN);
+  Utils::sleep(1000);
+
+  //servo_control(servosInterface);
 
   delete servosInterface;
   servosInterface = NULL;
